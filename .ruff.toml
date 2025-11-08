@@ -1,0 +1,19 @@
+[lint]
+select = [
+    "E",   # Pycodestyle errors
+    "W",   # Pycodestyle warnings
+    "F",   # PyFlakes
+    "I",   # Isort
+    "B",   # Bugbear
+    "C4",  # Comprehensions
+    "S",   # Security (bandit)
+]
+
+
+# Игнорируемые правила
+ignore = ["E501", "B008", "S101"]
+
+[format]
+# Настройки форматирования
+skip-magic-trailing-comma = false
+line-ending = "auto"
