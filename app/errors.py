@@ -33,7 +33,6 @@ def problem_detail_handler(request: Request, exc: ProblemDetailException):
     return JSONResponse(status_code=exc.status, content=content)
 
 
-# Карта ошибок для клиентов
 ERROR_MAP = {
     "validation_error": {"type": "/errors/validation", "title": "Validation Failed"},
     "not_found": {"type": "/errors/not-found", "title": "Resource Not Found"},
