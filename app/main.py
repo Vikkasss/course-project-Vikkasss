@@ -31,15 +31,14 @@ async def api_error_handler(request: Request, exc: ApiError):
             "title": error_info["title"],
             "status": exc.status,
             "detail": exc.message,
-            "correlation_id": str(uuid4()),  # 👈 ДОБАВЛЕНО
-            "instance": str(request.url),  # 👈 ДОБАВЛЕНО
+            "correlation_id": str(uuid4()),
+            "instance": str(request.url),
         },
     )
 
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
-    # Normalize FastAPI HTTPException into our error envelope
     detail = exc.detail if isinstance(exc.detail, str) else "http_error"
     return JSONResponse(
         status_code=exc.status_code,
@@ -52,7 +51,6 @@ def health():
     return {"status": "ok"}
 
 
-# Example minimal entity (for tests/demo)
 _DB = {"items": []}
 
 
@@ -173,7 +171,7 @@ async def upload_book_cover(file: UploadFile = File(...)):
                 title="Unsupported Media Type",
                 detail="File type not allowed",
                 error_type="/errors/validation",
-            ) from e  # ← ДОБАВЬ 'from e'
+            ) from e
 
         else:
 
@@ -182,4 +180,4 @@ async def upload_book_cover(file: UploadFile = File(...)):
                 title="Bad Request",
                 detail="Invalid file upload",
                 error_type="/errors/validation",
-            ) from e  # ← ДОБАВЬ 'from e'
+            ) from e
