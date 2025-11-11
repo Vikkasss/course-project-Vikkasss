@@ -162,7 +162,7 @@ async def upload_book_cover(file: UploadFile = File(...)):
                 title="File Too Large",
                 detail=f"File size exceeds {MAX_FILE_SIZE} bytes",
                 error_type="/errors/validation",
-            ) from e 
+            ) from e
 
         elif error_msg == "invalid_file_type":
 
