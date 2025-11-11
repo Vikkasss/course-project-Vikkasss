@@ -31,9 +31,8 @@ class TestInputValidation:
 
 
 class TestErrorFormat:
-    "Тесты формата ошибок RFC 7807"
+
     def test_problem_detail_format(self):
-        """Тест структуры ответа об ошибке"""
         r = client.get("/items/9999")
         assert r.status_code == 404
         body = r.json()
@@ -56,15 +55,14 @@ class TestErrorFormat:
 
 
 class TestFileSecurity:
+
     def test_upload_large_file(self):
-        """Тест загрузки слишком большого файла"""
-        large_file = io.BytesIO(b"x" * (10_000_000 + 1))  # > 10MB
+        large_file = io.BytesIO(b"x" * (10_000_000 + 1))
         files = {"file": ("large.jpg", large_file, "image/jpeg")}
         r = client.post("/upload-cover", files=files)
         assert r.status_code == 413
 
     def test_upload_invalid_file_type(self):
-        # Файл с расширением jpg, но с содержимым не jpeg
         fake_jpg = io.BytesIO(b"fake content")
         files = {"file": ("fake.jpg", fake_jpg, "image/jpeg")}
         r = client.post("/upload-cover", files=files)
@@ -79,7 +77,6 @@ class TestFileSecurity:
 
 
 class TestSQLInjectionProtection:
-    """Тесты защиты от SQL инъекций (для будущей БД)""
     def test_sql_injection_attempt(self):
         malicious_book = "Book' OR '1'='1"
         r = client.get(f"/quotes/book/{malicious_book}")
