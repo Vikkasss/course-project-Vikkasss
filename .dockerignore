@@ -15,3 +15,15 @@ build/
 htmlcov/
 node_modules/
 .env
+
+Dockerfile
+compose.yml
+.dockerignore
+README.md
+*.md
+.DS_Store
+Thumbs.db
+tests/
+*.dockerignore
+*.tmp
+*.temp
