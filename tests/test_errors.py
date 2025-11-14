@@ -9,14 +9,19 @@ def test_not_found_item():
     r = client.get("/items/999")
     assert r.status_code == 404
     body = r.json()
-    assert "error" in body and body["error"]["code"] == "not_found"
+    assert "detail" in body and body["detail"] == "Item not found"
+    assert "title" in body and body["title"] == "Not Found"
 
 
 def test_validation_error():
     r = client.post("/items", params={"name": ""})
     assert r.status_code == 422
     body = r.json()
-    assert body["error"]["code"] == "validation_error"
+    assert (
+        "detail" in body
+        and "Name must be between 1 and 100 characters" in body["detail"]
+    )
+    assert "title" in body and body["title"] == "Validation Failed"
 
 
 def test_get_quotes_empty():
@@ -60,7 +65,8 @@ def test_get_quote_by_id_not_found():
     r = client.get("/quotes/999")
     assert r.status_code == 404
     body = r.json()
-    assert "error" in body and body["error"]["code"] == "not_found"
+    assert "detail" in body and body["detail"] == "Quote not found"
+    assert "title" in body and body["title"] == "Not Found"
 
 
 def test_get_quotes_by_book():

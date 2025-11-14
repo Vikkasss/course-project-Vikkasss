@@ -11,10 +11,10 @@ class Quote(BaseModel):
     created_date: datetime
 
 
-class QuoteCreate(BaseModel):
-    text: str
-    author: str
-    book: str
+# class QuoteCreate(BaseModel):
+#     text: str
+#     author: str
+#     book: str
 
 
 # temporary database
