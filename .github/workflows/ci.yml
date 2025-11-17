@@ -83,8 +83,11 @@ jobs:
 
       - name: Build and test Docker image
         run: |
-          docker build -t $docker_image_build .
-          docker run --rm $docker_image_build python -c "import app; print('App imports work in container')"
+          docker build -t $DOCKER_IMAGE_NAME .
+          docker run --rm $DOCKER_IMAGE_NAME python -c "import app; print('App imports work in container')"
+        env:
+          DOCKER_IMAGE_NAME: vikkasss/course-project-vikkasss
+
 
       - name: Save build info
         run: |
