@@ -54,9 +54,9 @@ jobs:
           black --check .
           isort --check-only .
 
-      - name: Run tests with coverage
+      - name: Run tests
         run: |
-          pytest --cov=app --cov-report=xml --cov-report=html -v
+          pytest -v
 
       - name: Pre-commit (all files)
         run: pre-commit run --all-files
@@ -110,7 +110,7 @@ jobs:
 
       - name: Simulate deployment
         run: |
-          echo "🚀 Starting deployment simulation..."
+          echo "Starting deployment simulation..."
           echo "Deploying commit: ${{ github.sha }}"
           echo "Using secrets: DB_URL and API_KEY"
           echo "Deployment simulation completed successfully!"
