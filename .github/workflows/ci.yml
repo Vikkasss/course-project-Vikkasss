@@ -71,7 +71,7 @@ jobs:
           retention-days: 30
 
   docker-build:
-    name: build docker image
+    name: Build Docker Image
     runs-on: ubuntu-latest
     needs: test
 
@@ -83,8 +83,8 @@ jobs:
 
       - name: Build and test Docker image
         run: |
-          docker build -t $DOCKER_IMAGE_NAME .
-          docker run --rm $DOCKER_IMAGE_NAME python -c "import app; print('App imports work in container')"
+          docker build -t $docker_image_build .
+          docker run --rm $docker_image_build python -c "import app; print('App imports work in container')"
 
       - name: Save build info
         run: |
