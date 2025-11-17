@@ -71,7 +71,7 @@ jobs:
           retention-days: 30
 
   docker-build:
-    name: Build Docker Image
+    name: build docker image
     runs-on: ubuntu-latest
     needs: test
 
