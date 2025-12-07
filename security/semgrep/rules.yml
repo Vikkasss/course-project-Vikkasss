@@ -1,0 +1,39 @@
+rules:
+  - id: fastapi-sql-injection-risk
+    languages: [python]
+    message: "Прямая конкатенация строк в SQL-запросах может привести к SQL-инъекциям"
+    severity: ERROR
+    pattern: |
+      execute(f"...{$QUERY}...")
+    metadata:
+      category: security
+      cwe: "CWE-89: SQL Injection"
+
+  - id: fastapi-xss-html-response
+    languages: [python]
+    message: "Прямая передача пользовательского ввода в HTML может привести к XSS"
+    severity: WARNING
+    pattern: |
+      HTMLResponse(content=$CONTENT)
+    where:
+      $CONTENT: metavariable-regex ".*request.*|.*user_input.*"
+    metadata:
+      category: security
+      cwe: "CWE-79: Cross-site Scripting"
+
+  - id: hardcoded-secret-in-code
+    languages: [python]
+    message: "Возможно, в коде захардкожен секрет (пароль, токен, ключ)"
+    severity: ERROR
+    pattern-regex: "(?i)(password|secret|token|key|api_key)\\s*=\\s*['\"][^'\"\\n]{8,}['\"]"
+    metadata:
+      category: security
+
+  - id: debug-mode-enabled
+    languages: [python]
+    message: "Debug режим включен в production коде"
+    severity: WARNING
+    pattern: |
+      debug=True
+    metadata:
+      category: security
