@@ -1,24 +1,47 @@
-name: CI
+name: CI/CD Pipeline
+
 on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
 permissions:
   contents: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  DOCKER_IMAGE_NAME: ${{ github.repository }}
+
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  test:
+    name: Test Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+        os: [ubuntu-latest, macos-latest]
+
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python-version }}
           cache: "pip"
+          cache-dependency-path: "**/requirements*.txt"
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/pre-commit
+          key: ${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('requirements*.txt', '.pre-commit-config.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-python-${{ matrix.python-version }}-
 
       - name: Install dependencies
         run: |
@@ -31,8 +54,109 @@ jobs:
           black --check .
           isort --check-only .
 
-      - name: Tests
-        run: pytest -q
+      - name: Run tests
+        run: |
+          pytest -v
 
       - name: Pre-commit (all files)
         run: pre-commit run --all-files
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.os }}-${{ matrix.python-version }}
+          path: |
+            htmlcov/
+            coverage.xml
+          retention-days: 30
+
+  docker-build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and test Docker image
+        run: |
+          docker build -t $DOCKER_IMAGE_NAME .
+          docker run --rm $DOCKER_IMAGE_NAME python -c "import app; print('App imports work in container')"
+        env:
+          DOCKER_IMAGE_NAME: vikkasss/course-project-vikkasss
+
+
+      - name: Save build info
+        run: |
+          echo "Docker Image: $DOCKER_IMAGE_NAME" > build-info.md
+          echo "Build Date: $(date)" >> build-info.md
+          echo "Git SHA: ${{ github.sha }}" >> build-info.md
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-build-info
+          path: build-info.md
+          retention-days: 30
+
+  deploy-simulation:
+    name: Deploy Simulation
+    runs-on: ubuntu-latest
+    needs: [test, docker-build]
+    environment: staging
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Simulate deployment
+        run: |
+          echo "Starting deployment simulation..."
+          echo "Deploying commit: ${{ github.sha }}"
+          echo "Using secrets: DB_URL and API_KEY"
+          echo "Deployment simulation completed successfully!"
+        env:
+          DB_URL: ${{ secrets.DB_URL }}
+          API_KEY: ${{ secrets.API_KEY }}
+
+      - name: Create deployment report
+        run: |
+          echo "# Deployment Report" > deploy-report.md
+          echo "## Status: Success" >> deploy-report.md
+          echo "## Environment: staging" >> deploy-report.md
+          echo "## Timestamp: $(date)" >> deploy-report.md
+
+      - name: Upload deployment artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-report
+          path: deploy-report.md
+          retention-days: 30
+
+  summary:
+    name: Pipeline Summary
+    runs-on: ubuntu-latest
+    needs: [test, docker-build, deploy-simulation]
+    if: always()
+
+    steps:
+      - name: Generate summary
+        run: |
+          echo "## CI/CD Pipeline Complete " > summary.md
+          echo "### Jobs Status:" >> summary.md
+          echo "- Tests: ${{ needs.test.result }}" >> summary.md
+          echo "- Docker Build: ${{ needs.docker-build.result }}" >> summary.md
+          echo "- Deploy: ${{ needs.deploy-simulation.result }}" >> summary.md
+          echo "### Artifacts Generated:" >> summary.md
+          echo "- Test coverage reports" >> summary.md
+          echo "- Docker build info" >> summary.md
+          echo "- Deployment report" >> summary.md
+
+      - name: Upload summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-summary
+          path: summary.md
+          retention-days: 90
