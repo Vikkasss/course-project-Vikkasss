@@ -1,0 +1,32 @@
+title = "Course Project Gitleaks Configuration"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Ignore non-sensitive patterns and test files"
+paths = [
+  "EVIDENCE/",
+  "tests/",
+  "uploads/",
+  "docs/",
+]
+
+commits = []
+
+regexes = [
+  '''example\.com''',
+  '''test_.*''',
+  '''mock_.*''',
+  '''fake_.*''',
+  '''DEBUG_.*''',
+]
+
+[[allowlist.rules]]
+  description = "Примеры из README и документации"
+  regex = '''(api_key|secret|password)\s*=\s*["'].*example.*["']'''
+
+[[allowlist.rules]]
+  description = "Тестовые данные в тестах"
+  path = "tests/.*"
+  regex = '''\b(test_|mock_|sample_).*'''
