@@ -47,7 +47,7 @@ jobs:
 
           echo "Waiting for app to start..."
           timeout 60 bash -c '
-            until curl -f http://localhost:8000/ 2>/dev/null; do
+            until curl -f http://localhost:8000/docs 2>/dev/null; do
               echo "Waiting for app..."
               sleep 3
             done
