@@ -56,11 +56,19 @@ jobs:
       - name: ZAP Baseline Scan
         run: |
           echo "Using ZAP from GitHub Container Registry..."
-          docker run --rm --network host -v $PWD:/zap/wrk ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
-            -t http://localhost:8000 \
-            -r zap_baseline.html \
-            -J zap_baseline.json \
-            -d -I 2>&1 || echo "ZAP scan completed"
+          mkdir -p zap_reports
+
+          docker run --rm --network host \
+            -u $(id -u):$(id -g) \
+            -v $PWD/zap_reports:/zap/wrk \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py \
+              -t http://localhost:8000 \
+              -r zap_baseline.html \
+              -J zap_baseline.json \
+              -d -I 2>&1 | tee zap_scan.log
+
+          echo "ZAP scan completed"
       - name: Upload DAST evidence
         if: always()
         uses: actions/upload-artifact@v4
