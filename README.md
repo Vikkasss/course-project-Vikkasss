@@ -14,7 +14,7 @@ uvicorn app.main:app --reload
 ## Ритуал перед PR
 ```bash
 ruff check --fix .
-black .
+ruff check --fix .
 isort .
 pytest -q
 pre-commit run --all-files
@@ -22,7 +22,11 @@ pre-commit run --all-files
 
 ## Тесты
 ```bash
+ruff check --fix .
+black .
+isort .
 pytest -q
+pre-commit run --all-files
 ```
 
 ## CI
