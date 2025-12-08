@@ -1,0 +1,14 @@
+scan:
+  scanners:
+    - vuln
+    - config
+    - secret
+  severity:
+    - CRITICAL
+    - HIGH
+    - MEDIUM
+    - LOW
+
+format: json
+
+quiet: false
