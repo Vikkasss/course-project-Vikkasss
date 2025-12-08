@@ -1,0 +1,72 @@
+name: Security - DAST (ZAP baseline)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, p11-dast-zap]
+    paths:
+      - "app/**"
+      - "requirements*.txt"
+      - "pyproject.toml"
+      - ".github/workflows/ci-dast.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Ensure evidence dirs
+        run: mkdir -p EVIDENCE/P11
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run app (FastAPI)
+        run: |
+          uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+
+          echo "Waiting for app to start..."
+          timeout 60 bash -c '
+            until curl -f http://localhost:8000/ 2>/dev/null; do
+              echo "Waiting for app..."
+              sleep 3
+            done
+          '
+          echo "App is running!"
+
+      - name: ZAP Baseline Scan
+        run: |
+          # Запускаем ZAP baseline сканирование
+          docker run --rm --network host -v $PWD:/zap/wrk owasp/zap2docker-stable \
+            zap-baseline.py \
+              -t http://localhost:8000 \
+              -r zap_baseline.html \
+              -J zap_baseline.json \
+              -d || true
+
+          mv zap_baseline.* EVIDENCE/P11/ 2>/dev/null || true
+
+      - name: Upload DAST evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: P11_EVIDENCE
+          path: EVIDENCE/P11
