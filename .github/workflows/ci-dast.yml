@@ -37,7 +37,9 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install -r requirements.txt
+          pip install python-multipart
+#          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Run app (FastAPI)
         run: |
@@ -54,7 +56,6 @@ jobs:
 
       - name: ZAP Baseline Scan
         run: |
-          # Запускаем ZAP baseline сканирование
           docker run --rm --network host -v $PWD:/zap/wrk owasp/zap2docker-stable \
             zap-baseline.py \
               -t http://localhost:8000 \
