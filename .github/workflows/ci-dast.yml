@@ -39,7 +39,6 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
           pip install python-multipart
-#          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Run app (FastAPI)
         run: |
@@ -56,31 +55,12 @@ jobs:
 
       - name: ZAP Baseline Scan
         run: |
-          echo "Starting ZAP baseline scan..."
-
-          docker pull owasp/zap2docker-stable
-
-          docker run --rm --network host -v $PWD:/zap/wrk owasp/zap2docker-stable zap-baseline.py \
+          echo "Using ZAP from GitHub Container Registry..."
+          docker run --rm --network host -v $PWD:/zap/wrk ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
             -t http://localhost:8000 \
             -r zap_baseline.html \
             -J zap_baseline.json \
-            -d -I || echo "ZAP scan completed (may have warnings)"
-
-          if [ -f zap_baseline.html ]; then
-            echo "ZAP HTML report created"
-            mv zap_baseline.html EVIDENCE/P11/
-          else
-            echo "WARNING: ZAP HTML report not created"
-            echo "<html><body><h1>ZAP Scan Report</h1><p>No vulnerabilities found</p></body></html>" > EVIDENCE/P11/zap_baseline.html
-          fi
-
-          if [ -f zap_baseline.json ]; then
-            echo "ZAP JSON report created"
-            mv zap_baseline.json EVIDENCE/P11/
-          else
-            echo "WARNING: ZAP JSON report not created"
-            echo '{"@generated": "NA", "site": [{"@name": "http://localhost:8000", "@host": "localhost", "@port": "8000", "alerts": []}]}' > EVIDENCE/P11/zap_baseline.json
-          fi
+            -d -I 2>&1 || echo "ZAP scan completed"
       - name: Upload DAST evidence
         if: always()
         uses: actions/upload-artifact@v4
